@@ -4,6 +4,8 @@ import os
 
 from datetime import datetime
 
+from stats import save_statistic
+
 
 class ModelYOLO:
     def __init__(self, model_name):
@@ -22,6 +24,8 @@ class ModelYOLO:
 
         start_time = datetime.now()
 
+        statistic = {}
+
         cap = cv2.VideoCapture(input_path)
         if not cap.isOpened():
             return 0
@@ -39,6 +43,7 @@ class ModelYOLO:
         )
 
         counter = 0
+        frame_number = 0
 
         while True:
             ret, frame = cap.read()
@@ -54,10 +59,15 @@ class ModelYOLO:
 
             # Counter refresh
             current = len(results[0].boxes)
+            statistic[frame_number] = current
+            frame_number += 1
+
             counter = max(counter, current)
 
         cap.release()
         writer.release()
+
+        save_statistic(statistic, int(fps), os.path.basename(input_path))
 
         print(f"[DEBUG] Video processed")
         print(f"[DEBUG] Processing time = {datetime.now() - start_time}")

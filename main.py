@@ -3,7 +3,7 @@ from model import ModelYOLO
 
 if __name__ == "__main__":
 
-    filename = "smol_vid.mp4"
+    filename = "micro_vid.mp4"
 
     # Input file
     input_path = f"src/{filename}"
