@@ -15,7 +15,7 @@ class ModelYOLO:
     def load_model(self):
         self.model = YOLO(self.model_name)
 
-    def process_image(self, image):
+    def process_frame(self, image):
         return self.model.predict(source=image, classes=self.classes, conf=0.5, verbose=False)
 
     def process_video(self, input_path, output_path):
@@ -46,7 +46,7 @@ class ModelYOLO:
                 break
 
             # Detect
-            results = self.process_image(frame)
+            results = self.process_frame(frame)
 
             # Bounding boxes
             annotated_frame = results[0].plot()

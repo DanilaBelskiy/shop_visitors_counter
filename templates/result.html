@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analyze result</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <span>File processing...</span>
+    </div>
+
+    <div class="container"><div class="media-comparison">
+        <div class="media-group">
+            <h3>Original video</h3>
+            <video controls class="media-player">
+                <source src="{{ url_for('serve_upload', filename=original_filename) }}"
+                        type="video/{{ original_ext }}">
+                Your browser does not support video
+            </video>
+        </div>
+</div>
+        <div class="navigation">
+            <a href="/" class="report-button">Analyze another</a>
+            <a href="/report" class="report-button">Download report</a>
+            <a href="/download_result" class="report-button">Download result</a>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('video').forEach(video => {
+            video.addEventListener('timeupdate', () => {
+                const progress = (video.currentTime / video.duration) * 100;
+                video.closest('.media-group').querySelector('progress').value = progress;
+            });
+        });
+
+        document.querySelectorAll('.media-image').forEach(img => {
+            if(img.src.toLowerCase().endsWith('.gif')) {
+                const restartGif = () => {
+                    const src = img.src;
+                    img.src = '';
+                    setTimeout(() => img.src = src, 50);
+                };
+                img.addEventListener('click', restartGif);
+                restartGif();
+            }
+        });
+
+        document.querySelector('form')?.addEventListener('submit', () => {
+            document.getElementById('loading').style.display = 'flex';
+        });
+    </script>
+</body>
+</html>
