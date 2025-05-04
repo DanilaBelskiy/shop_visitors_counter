@@ -25,8 +25,6 @@ def save_statistic(stat_dict, fps, filename):
 
         amount_by_seconds[second] = second_amount // fps
 
-    print(amount_by_seconds, max_amount, min_amount)
-
     data = {
         "max_customers": max_amount,
         "min_customers": min_amount,

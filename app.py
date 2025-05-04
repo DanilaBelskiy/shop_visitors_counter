@@ -40,23 +40,20 @@ def handle_processing():
         original_path = os.path.join(upload_folder, original_filename)
         file.save(original_path)
 
-        if original_ext in ['mp4', 'avi', 'mov']:
-            processed_ext = 'mp4'
-            processed_filename = f"{file_id}.{processed_ext}"
-            processed_path = os.path.join(export_folder, processed_filename)
+        processed_ext = 'mp4'
+        processed_filename = f"{file_id}.{processed_ext}"
+        processed_path = os.path.join(export_folder, processed_filename)
 
-            model.process_video(original_path, processed_path)
+        model.process_video(original_path, processed_path)
 
-            if not os.path.exists(processed_path):
-                raise RuntimeError(f"Processed video file was not created at {processed_path}")
-
-            file_type = 'video'
+        if not os.path.exists(processed_path):
+            raise RuntimeError(f"Processed video file was not created at {processed_path}")
 
         return render_template('result.html',
                                original_filename=original_filename,
-                               processed_filename=original_filename,
+                               processed_filename=processed_filename,
                                original_ext=original_ext,
-                               processed_ext="mp4",
+                               processed_ext=processed_ext,
                                count=0)
 
     except Exception as e:
@@ -73,39 +70,6 @@ def handle_processing():
                                error_details="File processing failed"), 500
 
 
-@app.route('/process_frame', methods=['POST'])
-def process_frame():
-    try:
-        if 'frame' not in request.files:
-            return jsonify({'error': 'No frame provided'}), 400
-
-        file = request.files['frame']
-        img_bytes = file.read()
-        nparr = np.frombuffer(img_bytes, np.uint8)
-        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-        results = model.model(frame)
-        detections = []
-
-        if results[0].boxes:
-            for box in results[0].boxes:
-                if box.cls == model.classes[0]:
-                    x1, y1, x2, y2 = box.xyxyn[0].tolist()
-                    detections.append({
-                        'xmin': x1,
-                        'ymin': y1,
-                        'xmax': x2,
-                        'ymax': y2,
-                        'confidence': box.conf.item() * 100
-                    })
-
-        return jsonify({'detections': detections})
-
-    except Exception as e:
-        app.logger.error(f"Frame processing error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
-
 mimetypes.add_type('video/mp4', '.mp4')
 mimetypes.add_type('video/avi', '.avi')
 mimetypes.add_type('video/quicktime', '.mov')
@@ -118,25 +82,7 @@ def serve_upload(filename):
 
 @app.route('/exports/<path:filename>')
 def serve_export(filename):
-    try:
-        filepath = os.path.join(export_folder, filename)
-        if not os.path.exists(filepath):
-            return "File not found", 404
-
-        response = send_from_directory(
-            export_folder,
-            filename,
-            as_attachment=True
-        )
-
-        if filename.lower().endswith('.mp4'):
-            response.headers['Content-Type'] = 'video/mp4'
-
-        return response
-
-    except Exception as e:
-        app.logger.error(f"Error serving file {filename}: {str(e)}")
-        return "Internal server error", 500
+    return send_from_directory(export_folder, filename)
 
 
 @app.route('/report')
